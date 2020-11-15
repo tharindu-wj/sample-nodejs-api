@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "NODE_ENV=production node server",
-    "dev": "nodemon server"
+    "dev": "fuser -k -n tcp 5000 && nodemon server"
   },
   "author": "",
   "license": "ISC",
