@@ -11,7 +11,13 @@ const asyncHandler = require('../middlewares/async');
  */
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
   let query;
-  const { select: selectQuery, sort: sortQuery, ...queryParams } = req.query;
+  const {
+    select: selectQuery,
+    sort: sortQuery,
+    page,
+    limit,
+    ...queryParams
+  } = req.query;
 
   // build query for operators
   let queryStr = JSON.stringify(queryParams);
@@ -36,11 +42,43 @@ exports.getBootcamps = asyncHandler(async (req, res, next) => {
     query = query.sort('-createdAt');
   }
 
+  //Pagination
+  const pageNumber = parseInt(page, 10) || 1;
+  const limitNumber = parseInt(limit, 10) || 25;
+  const startIndex = (pageNumber - 1) * limit;
+  const endIndex = pageNumber * limit;
+
+  const totalBootcamps = await Bootcamp.countDocuments();
+
+  query = query.skip(startIndex).limit(limitNumber);
+
   const bootcamps = await query;
 
-  res
-    .status(200)
-    .json({ success: true, count: bootcamps.length, data: bootcamps });
+  // Pagination Results
+  const pagination = {};
+
+  // if page is not last
+  if (endIndex < totalBootcamps) {
+    pagination.next = {
+      page: pageNumber + 1,
+      limit: limitNumber,
+    };
+  }
+
+  // if page is not first
+  if (startIndex > 0) {
+    pagination.prev = {
+      page: pageNumber - 1,
+      limit: limitNumber,
+    };
+  }
+
+  res.status(200).json({
+    success: true,
+    count: bootcamps.length,
+    pagination,
+    data: bootcamps,
+  });
 });
 
 /**
