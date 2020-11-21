@@ -2,7 +2,7 @@ const ErrorResponse = require('../utils/ErrorResponse');
 const errorHandler = (err, req, res, next) => {
   let error = { ...err, message: err.message };
   // log error stack
-  console.log(error);
+  console.log(err);
 
   // Mongoose bad objectId
   if (err.name === 'CastError') {
