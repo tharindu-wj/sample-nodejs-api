@@ -11,13 +11,33 @@ const asyncHandler = require('../middlewares/async');
  */
 exports.getBootcamps = asyncHandler(async (req, res, next) => {
   let query;
-  let queryStr = JSON.stringify(req.query);
+  const { select: selectQuery, sort: sortQuery, ...queryParams } = req.query;
+
+  // build query for operators
+  let queryStr = JSON.stringify(queryParams);
   queryStr = queryStr.replace(
     /\b(gt|gte|lt|lte|in)\b/g,
     (match) => `$${match}`
   );
+
   query = Bootcamp.find(JSON.parse(queryStr));
+
+  // Select fields
+  if (selectQuery) {
+    const fields = selectQuery.split(',').join(' ');
+    query = query.select(fields);
+  }
+
+  // Sort
+  if (sortQuery) {
+    const sortBy = sortQuery.split(',').join(' ');
+    query = query.sort(sortBy);
+  } else {
+    query = query.sort('-createdAt');
+  }
+
   const bootcamps = await query;
+
   res
     .status(200)
     .json({ success: true, count: bootcamps.length, data: bootcamps });
